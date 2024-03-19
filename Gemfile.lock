@@ -1,0 +1,81 @@
+PATH
+  remote: .
+  specs:
+    justa-ruby (0.1.5)
+      jwt
+      multi_json
+      rest-client
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    ast (2.4.2)
+    backport (1.2.0)
+    base64 (0.2.0)
+    diff-lcs (1.5.0)
+    domain_name (0.6.20240107)
+    http-accept (1.7.0)
+    http-cookie (1.0.5)
+      domain_name (~> 0.5)
+    jwt (2.8.1)
+      base64
+    mime-types (3.5.2)
+      mime-types-data (~> 3.2015)
+    mime-types-data (3.2024.0305)
+    multi_json (1.15.0)
+    netrc (0.11.0)
+    parallel (1.22.1)
+    parser (3.1.2.0)
+      ast (~> 2.4.1)
+    rainbow (3.1.1)
+    rake (13.0.6)
+    readapt (1.4.3)
+      backport (~> 1.2)
+      thor (~> 1.0)
+    regexp_parser (2.3.1)
+    rest-client (2.1.0)
+      http-accept (>= 1.7.0, < 2.0)
+      http-cookie (>= 1.0.2, < 2.0)
+      mime-types (>= 1.16, < 4.0)
+      netrc (~> 0.8)
+    rexml (3.2.5)
+    rspec (3.11.0)
+      rspec-core (~> 3.11.0)
+      rspec-expectations (~> 3.11.0)
+      rspec-mocks (~> 3.11.0)
+    rspec-core (3.11.0)
+      rspec-support (~> 3.11.0)
+    rspec-expectations (3.11.0)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.11.0)
+    rspec-mocks (3.11.1)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.11.0)
+    rspec-support (3.11.0)
+    rubocop (1.29.0)
+      parallel (~> 1.10)
+      parser (>= 3.1.0.0)
+      rainbow (>= 2.2.2, < 4.0)
+      regexp_parser (>= 1.8, < 3.0)
+      rexml (>= 3.2.5, < 4.0)
+      rubocop-ast (>= 1.17.0, < 2.0)
+      ruby-progressbar (~> 1.7)
+      unicode-display_width (>= 1.4.0, < 3.0)
+    rubocop-ast (1.17.0)
+      parser (>= 3.1.1.0)
+    ruby-progressbar (1.11.0)
+    thor (1.2.1)
+    unicode-display_width (2.1.0)
+
+PLATFORMS
+  x86_64-linux
+
+DEPENDENCIES
+  justa-ruby!
+  rake (~> 13.0)
+  readapt
+  rspec (~> 3.0)
+  rubocop (~> 1.21)
+
+BUNDLED WITH
+   2.3.11

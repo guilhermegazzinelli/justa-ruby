@@ -1,0 +1,9 @@
+{
+  "configurations": [
+    {
+      "type": "rdbg",
+      "name": "Attach rdbg",
+      "request": "attach"
+    }
+  ]
+}
