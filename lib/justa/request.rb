@@ -2,29 +2,29 @@ require "uri"
 require "rest_client"
 require "multi_json"
 
-DEFAULT_HEADERS = {
-  # "Content-Type" => "application/x-www-form-urlencoded",
-  "Accept" => "application/json",
-  "User-Agent" => "justa-ruby/#{Justa::VERSION}"
-}
-
 module Justa
   class Request
+    DEFAULT_HEADERS = {
+      "Content-Type" => "application/json",
+      "Accept" => "application/json",
+      "User-Agent" => "justa-ruby/#{Justa::VERSION}"
+    }.freeze
+
     attr_accessor :path, :method, :parameters, :headers, :query
 
     def initialize(path, method, options = {})
-      @path = path
-      @method     = method
-      @parameters = options[:params]      || nil
-      @query      = options[:query]       || {}
-      @headers    = options[:headers]     || {}
-      @auth       = options[:auth]        || false
-      @client_key = options[:client_key]  || @parameters && (@parameters[:client_key] || @parameters["client_key"]) || Justa.default_client_key
+      @path             = path
+      @method           = method
+      @parameters       = options[:params]      || nil
+      @query            = options[:query]       || {}
+      @headers          = options[:headers]     || {}
+      @auth             = options[:auth]        || false
+      @append_document  = options.fetch(:append_document, true)
+      @client_key       = options[:client_key] || @parameters && (@parameters[:client_key] || @parameters["client_key"]) || Justa.default_client_key
     end
 
     def run
-      params = request_params
-      response = RestClient::Request.execute params
+      response = RestClient::Request.execute request_params
       MultiJson.decode response.body
     rescue RestClient::Exception => e
       begin
@@ -45,6 +45,8 @@ module Justa
         raise Justa::ResponseError.new(request_params, e)
       end
     rescue MultiJson::ParseError
+      return {} unless response.code < 200 && response.code > 299
+
       raise Justa::ResponseError.new(request_params, response)
     rescue SocketError
       raise Justa::ConnectionError, $!
@@ -89,22 +91,24 @@ module Justa
 
       @parameters
 
-      if !@auth && @parameters && Justa.callback_url && method == "POST"
-        aux.merge!({ payload: MultiJson.encode(@parameters.merge({ callback_url: Justa.callback_url })) })
+      if !@auth && @parameters && method == "POST"
+        aux.merge!({ payload: MultiJson.encode(@parameters.to_request_params) })
       elsif @parameters
         aux.merge!({ payload: @parameters })
       end
 
-      # extra_headers = DEFAULT_HEADERS
-      # extra_headers[:authorization] = "Bearer #{Justa::TokenManager.token_for @client_key}" unless @auth
-      # extra_headers[:authorization] = "Bearer #{Justa::TokenManager.token_for @client_key}" unless @auth
+      extra_headers = DEFAULT_HEADERS.merge(@headers)
+      extra_headers[:authorization] = "Bearer #{Justa::TokenManager.token_for @client_key}" unless @auth
+      extra_headers["integratorId"] = Justa.integrator_id unless @auth
 
-      aux.merge!({ headers: DEFAULT_HEADERS.merge(@headers) })
+      aux.merge!({ headers: extra_headers })
       aux
     end
 
+    def must_append_document?; end
+
     def full_api_url
-      Justa.api_endpoint + path
+      Justa.api_endpoint + "/payment-provider/api" + @path + (!@auth && @append_document ? ("/" + TokenManager.client_for(@client_key).document.to_s) : "")
     end
   end
 end
