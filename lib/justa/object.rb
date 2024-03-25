@@ -2,21 +2,21 @@ module Justa
   class JustaObject
     attr_reader :attributes
 
-    RESOURCES = Dir[File.expand_path('../resources/*.rb', __FILE__)].map do |path|
-      File.basename(path, '.rb').to_sym
-    end
+    RESOURCES = Dir[File.expand_path("resources/*.rb", __dir__)].map do |path|
+      File.basename(path, ".rb").to_sym
+    end.freeze
 
     def initialize(response = {})
       # raise MissingCredentialsError.new("Missing :client_key for extra options #{options}") if options && !options[:client_key]
 
-      @attributes = Hash.new
+      @attributes = {}
       @unsaved_attributes = Set.new
 
-      @client_key = response.dig(:client_key) || Justa.default_client_key #|| :default
+      @client_key = response.dig(:client_key) || Justa.default_client_key # || :default
       update response
     end
 
-    def []=(key,value)
+    def []=(key, value)
       @attributes[key] = value
       @unsaved_attributes.add key
     end
@@ -31,18 +31,24 @@ module Justa
 
     def unsaved_attributes
       Hash[@unsaved_attributes.map do |key|
-        [ key, to_hash_value(self[key], :unsaved_attributes) ]
+        [key, to_hash_value(self[key], :unsaved_attributes)]
       end]
     end
 
     def to_hash
       Hash[@attributes.map do |key, value|
-        [ key, to_hash_value(value, :to_hash) ]
+        [key, to_hash_value(value, :to_hash)]
+      end]
+    end
+
+    def to_request_params
+      Hash[@attributes.map do |key, value|
+        [key.to_s.to_camel(:lower), to_hash_value(value, :to_hash)]
       end]
     end
 
     def respond_to?(name, include_all = false)
-      return true if name.to_s.end_with? '='
+      return true if name.to_s.end_with? "="
 
       @attributes.has_key?(name.to_s) || super
     end
@@ -57,7 +63,9 @@ module Justa
     # # alias :inspect :to_s
 
     protected
+
     def update(attributes)
+      attributes = attributes.convert_from_request if attributes.respond_to? :convert_from_request
       removed_attributes = @attributes.keys - attributes.to_hash.keys
 
       removed_attributes.each do |key|
@@ -65,7 +73,7 @@ module Justa
       end
 
       attributes.each do |key, value|
-        key = key.to_s
+        key = key.to_s.to_snake
 
         @attributes[key] = JustaObject.convert(value, Util.singularize(key), @client_key)
         @unsaved_attributes.delete key
@@ -89,37 +97,33 @@ module Justa
       name = name.to_s
 
       unless block_given?
-        if name.end_with?('=') && args.size == 1
+        if name.end_with?("=") && args.size == 1
           attribute_name = name[0...-1]
           return self[attribute_name] = args[0]
         end
 
-        if args.size == 0
-          return self[name] || self[name.to_sym]
-        end
+        return self[name] || self[name.to_sym] if args.size == 0
       end
 
-      if attributes.respond_to? name
-        return attributes.public_send name, *args, &block
-      end
+      return attributes.public_send name, *args, &block if attributes.respond_to? name
 
       super name, *args, &block
     end
 
-
     class << self
-      def convert(response, resource_name = nil, client_key=nil)
+      def convert(response, resource_name = nil, client_key = nil)
         case response
         when Array
-          response.map{ |i| convert i, resource_name, client_key }
+          response.map { |i| convert i, resource_name, client_key }
         when Hash
-          resource_class_for(resource_name).new(response.merge({client_key: client_key}))
+          resource_class_for(resource_name).new(response.merge({ client_key: client_key }))
         else
           response
         end
       end
 
       protected
+
       def resource_class_for(resource_name)
         return Justa::JustaObject if resource_name.nil?
 
@@ -131,7 +135,7 @@ module Justa
       end
 
       def capitalize_name(name)
-        name.split('_').collect(&:capitalize).join
+        name.split("_").collect(&:capitalize).join
         # name.gsub(/(\A\w|\_\w)/){ |str| str.gsub('_', '').upcase }
       end
     end

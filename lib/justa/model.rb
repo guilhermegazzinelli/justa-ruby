@@ -5,13 +5,14 @@ module Justa
       self
     end
 
-    def save
-      update Justa::Request.put(url, params: unsaved_attributes).call(class_name)
-      self
-    end
+    # def save
+    #   update Justa::Request.put(url, params: unsaved_attributes).call(class_name)
+    #   self
+    # end
 
     def url(*params)
-      raise RequestError.new('Invalid ID') unless primary_key.present?
+      raise RequestError, "Invalid ID" unless primary_key.present?
+
       self.class.url CGI.escape(primary_key.to_s), *params
     end
 
@@ -21,23 +22,24 @@ module Justa
     end
 
     def primary_key
-      id
+      tx_id
     end
 
     def class_name
-      self.class.to_s.split('::').last
+      self.class.to_s.split("::").last
     end
 
     class << self
       def create(*args)
-        self.new(*args).create
+        new(*args).create
       end
 
       def find_by_id(id, **options)
-        raise RequestError.new('Invalid ID') unless id.present?
-        Justa::Request.get(url(id), options).call underscored_class_name
+        raise RequestError, "Invalid ID" unless id.present?
+
+        Justa::Request.get(url(id), options.merge({ append_document: false })).call underscored_class_name
       end
-      alias :find :find_by_id
+      alias find find_by_id
 
       # def find_by(params = Hash.new, page = nil, count = nil)
       #   params = extract_page_count_or_params(page, count, **params)
@@ -54,15 +56,15 @@ module Justa
       # alias :where :all
 
       def url(*params)
-        ["/#{ CGI.escape class_name }", *params].join '/'
+        ["/#{CGI.escape class_name}", *params].join "/"
       end
 
       def class_name
-        self.name.split('::').last.downcase
+        name.split("::").last.downcase
       end
 
       def underscored_class_name
-        self.name.split('::').last.gsub(/[a-z0-9][A-Z]/){|s| "#{s[0]}_#{s[1]}"}.downcase
+        name.split("::").last.gsub(/[a-z0-9][A-Z]/) { |s| "#{s[0]}_#{s[1]}" }.downcase
       end
     end
   end
