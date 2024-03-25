@@ -2,13 +2,11 @@ require "jwt"
 require "base64"
 
 module Justa
-  CLIENT_TYPES = %i[pdv e_comerce]
-
   #
   # Class to hold client authetication data
   #
   class Client
-    attr_reader :username, :password, :client_id, :client_secret, :key, :document, :token, :integrator_id
+    attr_reader :username, :password, :client_id, :client_secret, :key, :document, :token, :integrator_id, :expire_at
     attr_accessor :default
 
     #
@@ -36,10 +34,6 @@ module Justa
       @token = options.fetch(:token)
       # raise ParamError.new("Incorrect client type, must be one of #{CLIENT_TYPES}", :type, "Symbol") unless CLIENT_TYPES.include? @type
     rescue KeyError => e
-      unless CLIENT_TYPES.include? @type
-        raise ParamError.new("Missing data for credentials: #{e.key}, (#{e.message})", "Credentials",
-                             "Symbol or String")
-      end
     end
 
     #
@@ -90,7 +84,7 @@ module Justa
     # @return [String] Refresh token
     #
     def authenticate
-      set_token_from_request Justa::Request.auth("/payment-provider/api/oauth/token",
+      set_token_from_request Justa::Request.auth("/oauth/token",
                                                  { headers: { "Authorization" => basic_auth_header },
                                                    params: { username: @client.username, password: @client.password,
                                                              grant_type: "password" } }).run
@@ -103,7 +97,10 @@ module Justa
     #
     def refresh_token
       set_token_from_request Justa::Request.auth("/refresh-token",
-                                                 { headers: { "Authorization" => "Bearer " + @r_token },
+                                                 { headers: {
+                                                   "Authorization" => "Bearer " + @r_token,
+                                                   "Content-Type" => "application/x-www-form-urlencoded"
+                                                 },
                                                    client_key: @key }).run
     end
 
@@ -112,7 +109,7 @@ module Justa
     end
 
     def refresh_token_if_expired
-      # refresh_token if Time.at(JWT.decode(@a_token, nil, false).first.dig("exp")) < Time.now
+      authenticate if @expire_at.nil? || @expire_at < Time.now
     end
 
     #
@@ -125,6 +122,7 @@ module Justa
     def set_token_from_request(response)
       @a_token = response["access_token"]
       @r_token = response["refresh_token"]
+      @expire_at = Time.now + (response["expires_in"]&.to_i || 30)
     end
   end
 end
