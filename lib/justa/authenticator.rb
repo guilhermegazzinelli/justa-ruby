@@ -32,7 +32,6 @@ module Justa
       @default = options.fetch(:default, true)
       @document = options.fetch(:document)
       @token = options.fetch(:token)
-      # raise ParamError.new("Incorrect client type, must be one of #{CLIENT_TYPES}", :type, "Symbol") unless CLIENT_TYPES.include? @type
     rescue KeyError => e
     end
 
