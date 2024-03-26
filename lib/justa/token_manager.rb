@@ -27,6 +27,7 @@ module Justa
           client_id: Justa.client_id,
           client_secret: Justa.client_secret,
           integrator_id: Justa.integrator_id,
+          document: Justa.document,
           key: :default,
           default: true
         }]

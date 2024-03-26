@@ -20,7 +20,7 @@ module Justa
 
   class << self
     attr_accessor :username, :password, :client_id, :client_secret, :integrator_id, :callback_url, :credentials,
-                  :default_client_key
+                  :default_client_key, :document
     attr_reader :api_endpoint
 
     def production?
