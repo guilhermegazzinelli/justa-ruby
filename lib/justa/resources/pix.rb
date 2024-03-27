@@ -22,7 +22,8 @@ module Justa
       raise ParamError.new("Missing value param", :value, :integer, url("approve")) unless params.has_key? :value
 
       Justa::Request.post(url("approve"),
-                          { append_document: false, params: params }).call underscored_class_name
+                          { append_document: false,
+                            params: params.merge({ client_key: @client_key }) }).call underscored_class_name
       fetch
     end
   end

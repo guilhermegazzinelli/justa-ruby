@@ -30,7 +30,7 @@ module Justa
 
       @key = Justa::Util.to_sym(options.fetch(:key, options.fetch(:document, nil) || Justa.default_client_key))
       @default = options.fetch(:default, true)
-      @document = options.fetch(:document)
+      @document = options.fetch(:document, Justa.document)
       @token = options.fetch(:token)
     rescue KeyError => e
     end
@@ -45,6 +45,7 @@ module Justa
         username: @username,
         password: @password,
         client_id: @client_id,
+        token: @token,
         document: @document,
         key: @key
       }
@@ -94,14 +95,14 @@ module Justa
     #
     # @return [<Type>] <description>
     #
-    def refresh_token
-      set_token_from_request Justa::Request.auth("/refresh-token",
-                                                 { headers: {
-                                                   "Authorization" => "Bearer " + @r_token,
-                                                   "Content-Type" => "application/x-www-form-urlencoded"
-                                                 },
-                                                   client_key: @key }).run
-    end
+    # def refresh_token
+    #   set_token_from_request Justa::Request.auth("/refresh-token",
+    #                                              { headers: {
+    #                                                "Authorization" => "Bearer " + @r_token,
+    #                                                "Content-Type" => "application/x-www-form-urlencoded"
+    #                                              },
+    #                                                client_key: @key }).run
+    # end
 
     def basic_auth_header
       "Basic " + Base64.encode64("#{@client.client_id}:#{@client.client_secret}").gsub(/\n/, "")
