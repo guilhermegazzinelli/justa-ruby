@@ -12,3 +12,8 @@
 
 - Usa document como configuração default para a autenticação
 - Adiciona parâmetro client_key para approvação do pix
+
+
+## [0.1.] - 2024-05-1
+
+- Corrige Endpoint de produção da Justa

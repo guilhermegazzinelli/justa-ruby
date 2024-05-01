@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    justa-ruby (0.1.5)
+    justa-ruby (0.1.9)
       jwt
       multi_json
       rest-client

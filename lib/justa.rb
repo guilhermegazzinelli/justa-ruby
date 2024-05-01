@@ -40,7 +40,7 @@ module Justa
 
   @default_client_key = :default
 
-  @api_endpoint = Justa.production? ? "https://api.Justa.com.br" : "https://integrador.staging.justa.com.vc"
+  @api_endpoint = Justa.production? ? "https://gateway.justa.com.vc" : "https://integrador.staging.justa.com.vc"
 
   puts "Running on production" if production?
 end
